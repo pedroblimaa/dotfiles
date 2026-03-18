@@ -45,26 +45,44 @@ install_ghostty() {
 }
 
 install_zsh_themes() {
-    # RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    # git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+    RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+}
+
+install_fonts() {
+    local fonts_dir="$HOME/.local/share/fonts"
+    local jb_zip="$fonts_dir/JetBrainsMono.zip"
+    local jb_tmp_dir="$fonts_dir/jetbrainsmono_nf_tmp"
     
-    mkdir -p ~/.local/share/fonts
+    mkdir -p "$fonts_dir"
     
-    curl -fLo "$HOME/.local/share/fonts/MesloLGS NF Regular.ttf" https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
-    curl -fLo "$HOME/.local/share/fonts/MesloLGS NF Bold.ttf" https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf
-    curl -fLo "$HOME/.local/share/fonts/MesloLGS NF Italic.ttf" https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
-    curl -fLo "$HOME/.local/share/fonts/MesloLGS NF Bold Italic.ttf" https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
+    # Instal MesloLGS fonts
+    curl -fLo "$fonts_dir/MesloLGS NF Regular.ttf" https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
+    curl -fLo "$fonts_dir/MesloLGS NF Bold.ttf" https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf
+    curl -fLo "$fonts_dir/MesloLGS NF Italic.ttf" https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
+    curl -fLo "$fonts_dir/MesloLGS NF Bold Italic.ttf" https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
     
-    fc-cache -fv
+    # Install jetbrain fonts
+    curl -fLo "$jb_zip" https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
+    
+    rm -rf "$jb_tmp_dir"
+    mkdir -p "$jb_tmp_dir"
+    
+    unzip -o "$jb_zip" -d "$jb_tmp_dir"
+    find "$jb_tmp_dir" -type f \( -name "*.ttf" -o -name "*.otf" \) -exec cp {} "$fonts_dir/" \;
+    
+    rm -rf "$jb_tmp_dir" "$jb_zip"
+    
 }
 
 main() {
-    # install_flatpaks
-    # install_brew_packages
-    # setup_node_tools
-    # setup_git
-    # install_ghostty
+    install_flatpaks
+    install_brew_packages
+    setup_node_tools
+    setup_git
+    install_ghostty
     install_zsh_themes
+    install_fonts
 }
 
 main
