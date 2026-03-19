@@ -8,8 +8,6 @@ brew_packages=(
     direnv
 )
 
-
-
 install_brew_packages() {
     for pkg in "${brew_packages[@]}"; do
         brew install "$pkg"
@@ -36,10 +34,23 @@ install_ghostty() {
     sudo rpm-ostree install ghostty
 }
 
+install_vscode() {
+    sudo rpm-ostree install code
+}
+
 setup_zsh() {
+    local zsh_custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+
     # Setup themes
-    RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+    if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+        RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    fi
+
+    mkdir -p "$zsh_custom/themes"
+
+    if [[ ! -d "$zsh_custom/themes/powerlevel10k" ]]; then
+        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$zsh_custom/themes/powerlevel10k"
+    fi
 
     # Set as default shell
     sudo usermod -s "$(command -v zsh)" "$USER"
@@ -68,11 +79,11 @@ install_fonts() {
     find "$jb_tmp_dir" -type f \( -name "*.ttf" -o -name "*.otf" \) -exec cp {} "$fonts_dir/" \;
     
     rm -rf "$jb_tmp_dir" "$jb_zip"
-    
+
+    fc-cache -f "$fonts_dir"
 }
 
 main() {
-    install_flatpaks
     install_brew_packages
     setup_node_tools
     setup_git
