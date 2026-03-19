@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-flatpak_packages=(
-    com.visualstudio.code
-)
-
 brew_packages=(
     git
     node
@@ -12,11 +8,7 @@ brew_packages=(
     direnv
 )
 
-install_flatpaks() {
-    for pkg in "${flatpak_packages[@]}"; do
-        flatpak install -y flathub "$pkg"
-    done
-}
+
 
 install_brew_packages() {
     for pkg in "${brew_packages[@]}"; do
@@ -44,9 +36,13 @@ install_ghostty() {
     sudo rpm-ostree install ghostty
 }
 
-install_zsh_themes() {
+setup_zsh() {
+    # Setup themes
     RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+
+    # Set as default shell
+    sudo usermod -s "$(command -v zsh)" "$USER"
 }
 
 install_fonts() {
@@ -81,7 +77,8 @@ main() {
     setup_node_tools
     setup_git
     install_ghostty
-    install_zsh_themes
+    install_vscode
+    setup_zsh
     install_fonts
 }
 
