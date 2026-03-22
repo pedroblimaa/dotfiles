@@ -3,7 +3,7 @@
 This repo is my quick setup for a fresh Bazzite install.
 
 It installs the tools I usually want right away, sets up my shell, adds a few
-fonts, and links my dotfiles.
+fonts, and keeps dotfiles as a separate step.
 
 ## What it sets up
 
@@ -16,9 +16,9 @@ fonts, and links my dotfiles.
 
 ## Dotfiles
 
-The [`dotfiles`](/var/home/pedrob/Documents/Dev/Scripts/MyBazziteSetup/dotfiles) folder includes my shell and git config files.
+The `dotfiles` folder includes my shell and git config files.
 
-Running the installer creates symlinks in `$HOME` and backs up any existing
+The dotfiles installer creates symlinks in `$HOME` and backs up any existing
 files with a timestamped `.bak` suffix.
 
 ## Usage
@@ -31,6 +31,6 @@ bash dotfiles/install.sh
 ## Notes
 
 - This is meant for Bazzite or another Fedora Atomic style system.
-- Homebrew should already be installed and available in `PATH`.
-- `ghostty` and `code` are installed with `rpm-ostree`, so a reboot may be needed.
-- The dotfiles step is separate from the main setup script.
+- Homebrew should already be installed.
+- `ghostty` and `code` are installed with `rpm-ostree`, so reboot after `bash BazziteSetup.sh` before running `bash dotfiles/install.sh`.
+- `bash dotfiles/install.sh` can also be rerun later if you only want to relink dotfiles.
