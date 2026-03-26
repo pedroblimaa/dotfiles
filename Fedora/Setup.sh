@@ -74,6 +74,8 @@ setup_node_tools() {
         sudo npm install -g corepack
     fi
 
+    sudo npm install -g @openai/codex@latest
+
     corepack enable
     corepack prepare pnpm@latest --activate
 }
