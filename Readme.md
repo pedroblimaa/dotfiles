@@ -1,36 +1,46 @@
-# My Bazzite Setup
+# My Linux Setup
 
-This repo is my quick setup for a fresh Bazzite install.
-
-It installs the tools I usually want right away, sets up my shell, adds a few
-fonts, and keeps dotfiles as a separate step.
+This repo is how I set up a fresh Linux install with the apps, shell, and
+dotfiles I usually want right away.
 
 ## What it sets up
 
-- Homebrew packages: `git`, `node`, `zsh`, `direnv`
-- `corepack` and `pnpm`
-- Git editor as `code --wait`
-- `ghostty` and VS Code
-- Oh My Zsh + `powerlevel10k`
-- MesloLGS and JetBrains Mono Nerd Fonts
+- Bazzite setup
+- Fedora setup
+- NVIDIA drivers on Fedora
+- Dotfiles symlinked into `$HOME`
 
-## Dotfiles
+## Scripts
 
-The `dotfiles` folder includes my shell and git config files.
-
-The dotfiles installer creates symlinks in `$HOME` and backs up any existing
-files with a timestamped `.bak` suffix.
+- `Bazzite/Bazzite.sh`: setup for Bazzite or another Fedora Atomic style system
+- `Fedora/Fedora.sh`: setup for regular mutable Fedora systems that use `dnf`
+- `Fedora/Nvidia.sh`: optional NVIDIA driver install for regular mutable Fedora
+- `dotfiles/install.sh`: symlink shell and git config files into `$HOME`
 
 ## Usage
 
+### Bazzite
+
 ```bash
-bash BazziteSetup.sh
+bash Bazzite/Bazzite.sh
+bash dotfiles/install.sh
+```
+
+### Fedora
+
+```bash
+sudo dnf upgrade --refresh
+bash Fedora/Nvidia.sh
+bash Fedora/Fedora.sh
 bash dotfiles/install.sh
 ```
 
 ## Notes
 
-- This is meant for Bazzite or another Fedora Atomic style system.
-- Homebrew should already be installed.
-- `ghostty` and `code` are installed with `rpm-ostree`, so reboot after `bash BazziteSetup.sh` before running `bash dotfiles/install.sh`.
-- `bash dotfiles/install.sh` can also be rerun later if you only want to relink dotfiles.
+- `Bazzite/Bazzite.sh` is for Bazzite or another Fedora Atomic style system.
+- Homebrew should already be installed before running `Bazzite/Bazzite.sh`.
+- Reboot after `bash Bazzite/Bazzite.sh` before running `bash dotfiles/install.sh`.
+- `Fedora/Fedora.sh` and `Fedora/Nvidia.sh` are for regular DNF-based Fedora systems.
+- `Fedora/Nvidia.sh` recommends `sudo dnf upgrade --refresh` first on a fresh install.
+- `Fedora/Nvidia.sh` skips the install if no NVIDIA GPU is detected.
+- `bash dotfiles/install.sh` can be rerun later if you only want to relink dotfiles.
