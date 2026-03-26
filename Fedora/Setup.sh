@@ -14,6 +14,8 @@ dnf_packages=(
     gnome-tweaks
     gnome-extensions-app
     gnome-shell-extension-user-theme
+    gnome-shell-extension-dash-to-dock
+    gnome-shell-extension-blur-my-shell
     gnome-themes-extra
     gtk-murrine-engine
     papirus-icon-theme
@@ -25,7 +27,7 @@ install_dnf_packages() {
 }
 
 enable_rpmfusion() {
-    sudo dnf install -y --refresh \
+    sudo dnf install -y \
         "https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
         "https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm"
 }
@@ -103,7 +105,35 @@ EOF
 }
 
 install_steam() {
-    sudo dnf install -y --refresh steam
+    sudo dnf install -y steam
+}
+
+configure_gnome_dock() {
+    local extension_id="dash-to-dock@micxgx.gmail.com"
+    local schema="org.gnome.shell.extensions.dash-to-dock"
+
+    if [[ "${XDG_CURRENT_DESKTOP:-}" != *GNOME* ]]; then
+        echo "Skipping GNOME dock setup: no active GNOME session detected."
+        return
+    fi
+
+    if [[ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
+        echo "Skipping GNOME dock setup: user session bus is unavailable."
+        return
+    fi
+
+    if command -v gnome-extensions >/dev/null 2>&1 && gnome-extensions info "$extension_id" >/dev/null 2>&1; then
+        gnome-extensions enable "$extension_id"
+    fi
+
+    if ! gsettings get "$schema" dock-fixed >/dev/null 2>&1; then
+        echo "Skipping GNOME dock setup: Dash to Dock settings are unavailable."
+        return
+    fi
+
+    gsettings set "$schema" dock-fixed false
+    gsettings set "$schema" autohide true
+    gsettings set "$schema" intellihide true
 }
 
 setup_zsh() {
@@ -128,32 +158,41 @@ install_fonts() {
     local fonts_dir="$HOME/.local/share/fonts"
     local jb_zip="$fonts_dir/JetBrainsMono.zip"
     local jb_tmp_dir="$fonts_dir/jetbrainsmono_nf_tmp"
+    local fonts_updated=0
 
     mkdir -p "$fonts_dir"
 
-    # MesloLGS NF fonts for powerlevel10k
-    curl -fLo "$fonts_dir/MesloLGS NF Regular.ttf" \
-        https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
-    curl -fLo "$fonts_dir/MesloLGS NF Bold.ttf" \
-        https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf
-    curl -fLo "$fonts_dir/MesloLGS NF Italic.ttf" \
-        https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
-    curl -fLo "$fonts_dir/MesloLGS NF Bold Italic.ttf" \
-        https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
+    if ! fc-list | grep -Eiq 'MesloLGS (NF|Nerd Font)'; then
+        # MesloLGS NF fonts for powerlevel10k
+        curl -fLo "$fonts_dir/MesloLGS NF Regular.ttf" \
+            https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
+        curl -fLo "$fonts_dir/MesloLGS NF Bold.ttf" \
+            https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf
+        curl -fLo "$fonts_dir/MesloLGS NF Italic.ttf" \
+            https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
+        curl -fLo "$fonts_dir/MesloLGS NF Bold Italic.ttf" \
+            https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
+        fonts_updated=1
+    fi
 
-    # JetBrains Mono Nerd Font
-    curl -fLo "$jb_zip" \
-        https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
+    if ! fc-list | grep -Eiq 'JetBrainsMono.*(NF|Nerd Font)'; then
+        # JetBrains Mono Nerd Font
+        curl -fLo "$jb_zip" \
+            https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
 
-    rm -rf "$jb_tmp_dir"
-    mkdir -p "$jb_tmp_dir"
+        rm -rf "$jb_tmp_dir"
+        mkdir -p "$jb_tmp_dir"
 
-    unzip -o "$jb_zip" -d "$jb_tmp_dir"
-    find "$jb_tmp_dir" -type f \( -name "*.ttf" -o -name "*.otf" \) -exec cp {} "$fonts_dir/" \;
+        unzip -o "$jb_zip" -d "$jb_tmp_dir"
+        find "$jb_tmp_dir" -type f \( -name "*.ttf" -o -name "*.otf" \) -exec cp {} "$fonts_dir/" \;
 
-    rm -rf "$jb_tmp_dir" "$jb_zip"
+        rm -rf "$jb_tmp_dir" "$jb_zip"
+        fonts_updated=1
+    fi
 
-    fc-cache -f "$fonts_dir"
+    if (( fonts_updated )); then
+        fc-cache -f "$fonts_dir"
+    fi
 }
 
 main() {
@@ -165,6 +204,7 @@ main() {
     install_ghostty
     install_steam
     install_vscode
+    configure_gnome_dock
     setup_node_tools
     setup_git
     setup_zsh
