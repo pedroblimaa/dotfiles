@@ -24,6 +24,12 @@ install_dnf_packages() {
     sudo dnf install -y "${dnf_packages[@]}"
 }
 
+enable_rpmfusion() {
+    sudo dnf install -y --refresh \
+        "https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
+        "https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm"
+}
+
 install_google_chrome() {
     sudo tee /etc/yum.repos.d/google-chrome.repo >/dev/null <<'EOF'
 [google-chrome]
@@ -96,6 +102,10 @@ EOF
     sudo dnf install -y code
 }
 
+install_steam() {
+    sudo dnf install -y --refresh steam
+}
+
 setup_zsh() {
     local zsh_custom="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 
@@ -147,11 +157,13 @@ install_fonts() {
 }
 
 main() {
+    enable_rpmfusion
     install_google_chrome
     install_dnf_packages
     install_orchis_theme
     install_bibata_cursor
     install_ghostty
+    install_steam
     install_vscode
     setup_node_tools
     setup_git
